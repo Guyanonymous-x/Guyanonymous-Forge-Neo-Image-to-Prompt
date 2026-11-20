@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.1.0 (2026-11-20)
+
+- Write your own full request: in the tab, tick **Use my own full request** under "See or write the full request"; in the API, send `request` to `/guy_i2p/write` (it replaces length, detail and extra instructions; the default request is unchanged).
+- API: `max_new` on `/guy_i2p/write` sets the longest answer in tokens (0 = worked out from the length).
+
 ## v1.0.0 (2026-11-20)
 
 First release.

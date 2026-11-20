@@ -146,12 +146,16 @@ def _file_paths(files):
 # ---------------------------------------------------------------- job runners (generators, so results show as they come)
 
 def run_write(model_choice, detail, max_new, temperature, top_p, rep, seed, thinking,
-              files, folder, recursive, length, custom_words, depth, extra, save, suffix, overwrite,
-              progress=gr.Progress()):
+              files, folder, recursive, length, custom_words, depth, extra, use_own, own_request, save, suffix,
+              overwrite, progress=gr.Progress()):
     images = jobs.list_images(_file_paths(files), folder, recursive)
     if not images:
         raise gr.Error("Add images or give a folder.")
     instruction, words = jobs.write_instruction(length, custom_words, depth, extra)
+    if use_own:
+        if not (own_request or "").strip():
+            raise gr.Error("'Use my own full request' is ticked but the request box is empty.")
+        instruction = own_request.strip()
     args = gen_args(jobs.tokens_for_words(words, thinking), temperature, top_p, rep, seed, detail, thinking)
     jobs._stop.clear()
     results = {}  # picture name -> prompt, for the send / save box
@@ -346,8 +350,11 @@ def on_ui_tabs():
             w_depth = gr.Radio(label="How much detail", choices=list(jobs.DEPTHS), value="Normal")
             w_extra = gr.Textbox(label="Extra instructions (optional)", lines=2,
                                  placeholder="e.g. Describe her outfit first. Name the camera angle in plain words.")
-            with gr.Accordion("See the full request sent with each picture", open=False):
-                w_preview = gr.Textbox(show_label=False, interactive=False, lines=4)
+            with gr.Accordion("See or write the full request sent with each picture", open=False):
+                w_custom = gr.Checkbox(label="Use my own full request (replaces the length, detail and extra "
+                                             "instructions above; the length still sets how long it may write)",
+                                       value=False)
+                w_preview = gr.Textbox(show_label=False, interactive=True, lines=5)
             w_save, w_suffix, w_over = save_inputs("")
             w_run = gr.Button("Write prompts", variant="primary")
             with gr.Group():
@@ -373,12 +380,14 @@ def on_ui_tabs():
             w_to_txt.click(None, inputs=[w_prompt], js=send_js("txt2img"))
             w_to_img.click(None, inputs=[w_prompt], js=send_js("img2img"))
             w_savebtn.click(show_errors(save_prompt), inputs=[w_prompt, w_file, w_mode, w_oneline], outputs=[w_saved])
-            preview = lambda l, c, d, e: jobs.write_instruction(l, c, d, e)[0]
-            for c in (w_len, w_words, w_depth, w_extra):
-                c.change(preview, inputs=[w_len, w_words, w_depth, w_extra], outputs=[w_preview])
-            tab.load(preview, inputs=[w_len, w_words, w_depth, w_extra], outputs=[w_preview])
+            # the box shows the built request; once "use my own" is ticked, what is typed there is kept and used
+            preview = lambda l, c, d, e, own: gr.update() if own else jobs.write_instruction(l, c, d, e)[0]
+            for c in (w_len, w_words, w_depth, w_extra, w_custom):
+                c.change(preview, inputs=[w_len, w_words, w_depth, w_extra, w_custom], outputs=[w_preview])
+            tab.load(preview, inputs=[w_len, w_words, w_depth, w_extra, w_custom], outputs=[w_preview])
             w_run.click(show_errors(run_write), inputs=settings + [w_files, w_folder, w_rec, w_len, w_words, w_depth,
-                                                                   w_extra, w_save, w_suffix, w_over],
+                                                                   w_extra, w_custom, w_preview, w_save, w_suffix,
+                                                                   w_over],
                         outputs=[w_out, status, w_pick, w_prompt, w_results])
 
         with gr.Tab("Rank my wordings"):
@@ -462,6 +471,8 @@ def on_app_started(demo, app):
         words: int = 100  # used when length is custom
         depth: str = "Normal"  # Main things only / Normal / Every small detail
         extra: str = ""
+        request: str = ""  # the whole request sent with each picture; replaces length, depth and extra when set
+        max_new: int = 0  # longest answer in tokens; 0 = worked out from the length
 
     class MissingReq(Pictures):
         prompt: str = ""
@@ -588,8 +599,11 @@ def on_app_started(demo, app):
             pics = pictures(req)
             instruction, words = jobs.write_instruction(length_name(req.length), req.words, depth_name(req.depth),
                                                         req.extra)
-            args = gen_args(jobs.tokens_for_words(words, req.thinking), req.temperature, req.top_p,
-                            req.repetition_penalty, req.seed, req.detail, req.thinking)
+            if req.request.strip():
+                instruction = req.request.strip()
+            max_new = req.max_new if req.max_new > 0 else jobs.tokens_for_words(words, req.thinking)
+            args = gen_args(max_new, req.temperature, req.top_p, req.repetition_penalty, req.seed, req.detail,
+                            req.thinking)
             jobs._stop.clear()
             t0, results = time.time(), []
             with jobs._lock:

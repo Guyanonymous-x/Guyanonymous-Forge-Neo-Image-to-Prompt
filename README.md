@@ -58,7 +58,7 @@ A new **Image to Prompt** tab appears.
 - **Prompt length**: Short (about 30 words), Medium (75), Long (150), Very long (250) or Custom (10 to 500).
 - **How much detail**: Main things only, Normal, or Every small detail.
 - **Extra instructions** (optional), for example "Start with the camera angle." They steer how it writes; leave the
-  box empty to see its untouched wording. **See the full request** shows exactly what is sent with each picture.
+  box empty to see its untouched wording. **See or write the full request** shows exactly what is sent with each picture; tick **Use my own full request** to write the whole request yourself.
 - Only the picture itself is read. A prompt saved inside the image file is ignored, so it can't steer the result.
 - Results show with a word count. Pick one under **Prompt from picture**, edit it if you like, then
   **Send to txt2img**, **Send to img2img** (fills the prompt box only; your negative prompt and settings stay), or
@@ -119,7 +119,7 @@ models off the card, as the Load button does).
 | `POST /guy_i2p/load` | `{"model": optional file name}` | loaded file, seconds |
 | `POST /guy_i2p/unload` | | |
 | `POST /guy_i2p/stop` | | stops a running job after its current step |
-| `POST /guy_i2p/write` | `images` and/or `folder`, `recursive`, `length` (short / medium / long / very long / custom), `words`, `depth` (Main things only / Normal / Every small detail), `extra`, `save`, `suffix`, `overwrite` | the request sent, and per picture: prompt, words, saved .txt |
+| `POST /guy_i2p/write` | `images` and/or `folder`, `recursive`, `length` (short / medium / long / very long / custom), `words`, `depth` (Main things only / Normal / Every small detail), `extra`, `request` (your own full request; replaces length, depth and extra), `max_new` (longest answer in tokens; 0 = from the length), `save`, `suffix`, `overwrite` | the request sent, and per picture: prompt, words, saved .txt |
 | `POST /guy_i2p/rank` | `image`, `wordings` (list), `wordings_file`, `question` | per wording: rank, picture_lift, fit_percent with and without the picture, log-probabilities, pieces |
 | `POST /guy_i2p/missing` | `images` and/or `folder`, `prompt`, `use_png`, `template` (`{prompt}` is replaced), `max_new` | per picture: prompt used and where it came from, answer |
 
