@@ -1,0 +1,22 @@
+Image to Prompt (Forge Neo extension)
+Copyright 2026 Guyanonymous-x
+Licensed under the GNU Affero General Public License v3.0 (see LICENSE).
+
+This extension builds on:
+
+- MOSS-Image for Forge Neo, Copyright 2026 eduardoabreu81, AGPL-3.0
+  https://github.com/eduardoabreu81/moss-image-forge-neo
+  guy_i2p/qwen35_vl.py follows its Qwen 3.5 language tower (forge_moss/native/qwen35.py), including the chunked
+  gated delta rule, and adds decoding, the vision tower, MRoPE image positions and sampling.
+- Forge Neo (sd-webui-forge-classic, neo branch), Copyright 2023 AUTOMATIC1111, 2024 lllyasviel and contributors,
+  AGPL-3.0. guy_i2p/qwen35_vl.py follows its Qwen 3.5 vision tower (backend/nn/llm/qwen35.py).
+- ComfyUI (comfy/text_encoders/qwen35.py, qwen3vl.py), GPL-3.0, which both of the above port.
+- Hugging Face Transformers (modeling_qwen3_5, Qwen3-VL image processor and rotary embeddings), Apache-2.0: reference
+  for the maths and the image preparation.
+
+Bundled file:
+
+- guy_i2p/qwen35_tokenizer.json: the Qwen 3.5 tokenizer by the Qwen team (Alibaba Cloud), Apache License 2.0
+  (https://www.apache.org/licenses/LICENSE-2.0). Unchanged.
+
+Model weights are not included; download them separately and follow their own licences.
